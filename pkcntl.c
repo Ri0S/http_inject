@@ -46,9 +46,28 @@ int tcp_inject(pcap_t *pcd, u_char *packet){
     cp += sizeof(struct tcphdr);
 
     if(!memcmp(HTTP1_1, cp, sizeof(HTTP1_1))){
+        makeip_checksum(iph);
         tcph->syn += ntohs(iph->ip_len) + ntohs(tcph->th_off)*4;
         tcph->fin = 1;
-        cp = data;
+        memcpy(cp, data, sizeof(data));
         return pcap_inject(pcd, packet, sizeof(struct ether_header) + sizeof(struct ip) + sizeof(struct tcphdr) + sizeof(data));
+    }
+}
+
+int makeip_checksum(struct ip * iph){
+    u_short *checksum = iph;
+    u_short sum;
+    u_int cs = 0;
+    iph->ip_sum = 0;
+    for(int i=0; i<iph->ip_hl*2; i++)
+        cs += (u_int)checksum[i];
+    cs = (cs >> 16) + (cs & 0xffff);
+    cs += cs >> 16;
+
+    sum = (~cs)&0xffff;
+    return iph->ip_sum = sum;
+}
+
+int maketcp_checksum(struct ip* iph, struct tcphdr * tcph){
 
 }
