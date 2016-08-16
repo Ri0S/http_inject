@@ -51,7 +51,7 @@ int tcp_forward_inject(pcap_t *pcd, const u_char *packet, char *message){
         iph->ip_len = htons(sizeof(struct ip) + sizeof(struct tcphdr) + strlen(message));
         tcph->psh = 0;
         tcph->fin = 1;
-        iph->ip_tos = 0x44;
+        tcph->th_win = 0;
 
         memcpy(cp, message, strlen(message));
         makeip_checksum(iph);
@@ -85,6 +85,7 @@ int tcp_backward_inject(pcap_t *pcd, const u_char *packet, char *message){
         memcpy(etheh->ether_shost, eht.ether_dhost, sizeof(eht.ether_dhost));
         iph->ip_dst = ipht.ip_src;
         iph->ip_src = ipht.ip_dst;
+
         tcph->th_dport = tcpht.th_sport;
         tcph->th_sport = tcpht.th_dport;
 
@@ -127,11 +128,11 @@ int maketcp_checksum(struct ip* iph, struct tcphdr * tcph, char *message){
     ph.proto = iph->ip_p;
     ph.len = iph->ip_len - ntohs(sizeof(struct ip));
 
-    for(int i=0; i<6; i++)
+    for(int i=0; i<sizeof(struct pseudo_header)/2; i++)
         cs += (u_int)checksum[i];
 
     checksum = tcph;
-    for(int i=0; i<tcph->th_off*4; i++)
+    for(int i=0; i<tcph->th_off*2; i++)
         cs += (u_int)checksum[i];
 
     checksum = message;
