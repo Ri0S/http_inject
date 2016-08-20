@@ -18,13 +18,24 @@ int main(void)
 
     printf("1. forward\n");
     printf("2. backward\n");
+    printf("3. http302 redirection\n");
     printf("? ");
     fflush(stdout);
     scanf("%d", &opt);
-    printf("message? ");
+    if(opt == 1 || opt == 2)
+        printf("message? ");
+    else if(opt == 3){
+        printf("site? ");
+    }
     fflush(stdout);
     gets(message);
-    gets(message);
+    if(opt == 1 || opt == 2)
+        gets(message);
+    else if(opt == 3){
+        char temp[64];
+        gets(temp);
+
+    }
 
     dev = pcap_lookupdev(errbuf); // 디바이스 이름
     if (dev == NULL)    {
@@ -32,7 +43,7 @@ int main(void)
         exit(1);
     }
 
-    pcd = pcap_open_live(dev, BUFSIZ,  0, 1, errbuf);
+    pcd = pcap_open_live(dev, BUFSIZ,  1, 1, errbuf);
     if (pcd == NULL){
         printf("%s\n", errbuf);
         exit(1);
